@@ -30,7 +30,7 @@
     <div class="card">
       <h3>1. XSS (Cross-Site Scripting) Testi</h3>
       <p><small>Zararlı JavaScript payload'larının enjeksiyon denemesi.</small></p>
-      <button class="btn-attack" id="runXSS">XSS Saldırısını Başlat</button>
+      <button class="btn-attack" id="runXSS" onclick="runXSS()">XSS Saldırısını Başlat</button>
       <div id="xssLog" class="log-box">Test bekleniyor...</div>
     </div>
 
@@ -38,7 +38,7 @@
     <div class="card">
       <h3>2. Rate Limiting (Spam/DDoS) Testi</h3>
       <p><small>Saniyede çok sayıda otomatik istek atarak sistemi kilitleme denemesi.</small></p>
-      <button class="btn-attack" id="runRate">Bot Saldırısını Başlat (5 İstek)</button>
+      <button class="btn-attack" id="runRate" onclick="runRateLimit()">Bot Saldırısını Başlat (5 İstek)</button>
       <div id="rateLog" class="log-box">Test bekleniyor...</div>
     </div>
 
@@ -46,7 +46,7 @@
     <div class="card">
       <h3>3. SQL Injection Testi</h3>
       <p><small>Giriş kutusuna ' OR '1'='1 manevrası ile sızma denemesi.</small></p>
-      <button class="btn-attack" id="runSQLi">SQLi Saldırısını Başlat</button>
+      <button class="btn-attack" id="runSQLi" onclick="runSQLi()">SQLi Saldırısını Başlat</button>
       <div id="sqliLog" class="log-box">Test bekleniyor...</div>
     </div>
 
@@ -54,7 +54,7 @@
     <div class="card">
       <h3>4. Yetki Yükseltme (RBAC) Testi</h3>
       <p><small>USER rolüyle Admin paneline yetkisiz sızma denemesi.</small></p>
-      <button class="btn-attack" id="runRBAC">Yetkisiz Erişim Saldırısı</button>
+      <button class="btn-attack" id="runRBAC" onclick="runRBAC()">Yetkisiz Erişim Saldırısı</button>
       <div id="rbacLog" class="log-box">Test bekleniyor...</div>
     </div>
 
