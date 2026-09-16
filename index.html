@@ -4,102 +4,71 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
-  <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <title>Güvenli Web Sitesi - Yetki Kontrolü (RBAC)</title>
+  <title>Güvenli Web Sitesi - Siber Saldırı Test Paneli</title>
   <style>
-    body { font-family: sans-serif; max-width: 800px; margin: 30px auto; padding: 20px; line-height: 1.6; }
-    .container { display: flex; gap: 20px; flex-wrap: wrap; }
-    .card { flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; }
-    input, select, button { width: 100%; padding: 10px; margin-top: 8px; font-size: 14px; box-sizing: border-box; }
-    button { background: #0066cc; color: #fff; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
-    button:hover { background: #0052a3; }
-    .btn-danger { background: #cc0000; }
-    .btn-danger:hover { background: #990000; }
-    .log-box { margin-top: 15px; padding: 10px; background: #222; color: #00ff00; font-family: monospace; font-size: 12px; border-radius: 4px; min-height: 90px; overflow-y: auto; word-break: break-all; }
-    .error { color: #ff4d4d; }
-    .success { color: #00ff00; }
-    .badge { padding: 3px 8px; border-radius: 4px; font-weight: bold; }
-    .badge-user { background: #e0e0e0; color: #333; }
-    .badge-admin { background: #ffcc00; color: #000; }
+    body { font-family: sans-serif; max-width: 900px; margin: 30px auto; padding: 20px; line-height: 1.6; background: #f4f6f9; }
+    .header { text-align: center; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
+    .card { padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    input { width: 100%; padding: 10px; margin-top: 8px; font-size: 14px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    button { width: 100%; padding: 10px; margin-top: 10px; font-size: 14px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: #fff; background: #0066cc; }
+    button:hover { opacity: 0.9; }
+    .btn-attack { background: #d9534f; }
+    .log-box { margin-top: 12px; padding: 10px; background: #1e1e1e; color: #00ff00; font-family: monospace; font-size: 12px; border-radius: 4px; min-height: 80px; max-height: 150px; overflow-y: auto; word-break: break-all; }
   </style>
 </head>
 <body>
-  <h2>Giriş Sonrası Güvenlik: Yetki Kontrolü (RBAC)</h2>
 
-  <div class="container">
-    <!-- SOL: Giriş ve Rol Seçimi -->
+  <div class="header">
+    <h2>Siber Saldırı & Güvenlik Test Paneli</h2>
+    <p>Geliştirdiğimiz savunma kalkanlarının otomatik saldırı simülasyonları</p>
+  </div>
+
+  <div class="grid">
+    <!-- TEST 1: XSS -->
     <div class="card">
-      <h3>1. Hesaba Giriş Yap</h3>
-      <form id="rbacForm">
-        <input type="text" id="rbacUser" placeholder="Kullanıcı Adı" autocomplete="off" required>
-        <select id="rbacRole">
-          <option value="USER">Sıradan Kullanıcı (Rol: USER)</option>
-          <option value="ADMIN">Yönetici (Rol: ADMIN)</option>
-        </select>
-        <button type="submit">Giriş Yap</button>
-      </form>
-      <button id="rbacLogout" class="btn-danger" style="margin-top: 10px; display: none;">Çıkış Yap</button>
-      <div id="userLog" class="log-box">Henüz giriş yapılmadı.</div>
+      <h3>1. XSS (Cross-Site Scripting) Testi</h3>
+      <p><small>Zararlı JavaScript payload'larının enjeksiyon denemesi.</small></p>
+      <button class="btn-attack" id="runXSS">XSS Saldırısını Başlat</button>
+      <div id="xssLog" class="log-box">Test bekleniyor...</div>
     </div>
 
-    <!-- SAĞ: Admin Paneli ve Yetki Sınama -->
+    <!-- TEST 2: Rate Limiting -->
     <div class="card">
-      <h3>2. Korumalı Admin Paneli</h3>
-      <p><small>Sadece <b>ADMIN</b> rolüne sahip kullanıcılar işlem yapabilir.</small></p>
-      <button id="adminActionBtn">Kullanıcıyı Sil (Admin Yetkisi İster)</button>
-      <div id="adminLog" class="log-box">Yetki denetimi bekleniyor...</div>
+      <h3>2. Rate Limiting (Spam/DDoS) Testi</h3>
+      <p><small>Saniyede çok sayıda otomatik istek atarak sistemi kilitleme denemesi.</small></p>
+      <button class="btn-attack" id="runRate">Bot Saldırısını Başlat (5 İstek)</button>
+      <div id="rateLog" class="log-box">Test bekleniyor...</div>
+    </div>
+
+    <!-- TEST 3: SQL Injection -->
+    <div class="card">
+      <h3>3. SQL Injection Testi</h3>
+      <p><small>Giriş kutusuna ' OR '1'='1 manevrası ile sızma denemesi.</small></p>
+      <button class="btn-attack" id="runSQLi">SQLi Saldırısını Başlat</button>
+      <div id="sqliLog" class="log-box">Test bekleniyor...</div>
+    </div>
+
+    <!-- TEST 4: RBAC / IDOR -->
+    <div class="card">
+      <h3>4. Yetki Yükseltme (RBAC) Testi</h3>
+      <p><small>USER rolüyle Admin paneline yetkisiz sızma denemesi.</small></p>
+      <button class="btn-attack" id="runRBAC">Yetkisiz Erişim Saldırısı</button>
+      <div id="rbacLog" class="log-box">Test bekleniyor...</div>
+    </div>
+
+    <!-- TEST 5: Password Hashing -->
+    <div class="card">
+      <h3>5. Şifre Karmaşası (Password Hashing)</h3>
+      <p><small>Şifrenin SHA-256 algoritmasıyla özetlenmesi.</small></p>
+      <input type="text" id="plainPassInput" placeholder="Bir şifre yazın (ör: mySecret123)" value="mySecret123">
+      <button style="background:#0066cc;" onclick="runHashTest('plainPassInput', 'hashLog')">SHA-256 Hash Üret</button>
+      <div id="hashLog" class="log-box">Test bekleniyor...</div>
     </div>
   </div>
 
-  <script>
-    let currentSession = null;
-
-    // Giriş İşlemi
-    document.getElementById('rbacForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const user = document.getElementById('rbacUser').value;
-      const role = document.getElementById('rbacRole').value;
-      const userLog = document.getElementById('userLog');
-      const logoutBtn = document.getElementById('rbacLogout');
-
-      // Oturum verisi (Sunucu tarafındaki Token doğrulaması simülasyonu)
-      currentSession = { username: user, role: role };
-
-      const badgeClass = role === 'ADMIN' ? 'badge-admin' : 'badge-user';
-      userLog.innerHTML = `<span class="success">[GİRİŞ BAŞARILI]</span><br>Kullanıcı: <b>${user}</b><br>Atanan Rol: <span class="badge ${badgeClass}">${role}</span>`;
-      logoutBtn.style.display = "block";
-    });
-
-    // Çıkış İşlemi
-    document.getElementById('rbacLogout').addEventListener('click', function() {
-      currentSession = null;
-      document.getElementById('userLog').innerHTML = "Oturum kapatıldı.";
-      document.getElementById('adminLog').innerHTML = "Yetki denetimi bekleniyor...";
-      this.style.display = "none";
-    });
-
-    // Admin Yetkisi Gerektiren Buton Denemesi (IDOR / Yetki Aşımı Testi)
-    document.getElementById('adminActionBtn').addEventListener('click', function() {
-      const adminLog = document.getElementById('adminLog');
-
-      // 1. Durum: Hiç giriş yapılmamış
-      if (!currentSession) {
-        adminLog.innerHTML = `<span class="error">[REDDEDİLDİ 401] Oturum açılmadı! Önce giriş yapmalısınız.</span>`;
-        return;
-      }
-
-      // 2. Durum: Giriş yapılmış ama Yetki (Rol) yetersiz
-      if (currentSession.role !== 'ADMIN') {
-        adminLog.innerHTML = `<span class="error">[ERİŞİM ENGELENDİ 403] Yetkisiz İşlem!<br>Kullanıcı: '${currentSession.username}' (Rol: ${currentSession.role})<br>Hata: Bu işlem için 'ADMIN' yetkisi gereklidir! Yetki yükseltme engellendi.</span>`;
-        return;
-      }
-
-      // 3. Durum: Giriş yapılmış VE Admin yetkisi var
-      adminLog.innerHTML = `<span class="success">[İŞLEM BAŞARILI 200]<br>Kullanıcı: '${currentSession.username}' (Rol: ADMIN)<br>Eylem: Admin yetkisi doğrulandı. Kritik işlem başarıyla gerçekleştirildi.</span>`;
-    });
-  </script>
- 
-<script src="security-tests.js"></script>
+  <!-- Dış JavaScript Dosyası -->
+  <script src="security-tests.js"></script>
 </body>
 </html>
