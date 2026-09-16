@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <title>Güvenli Web Sitesi - İleri Düzey Koruma</title>
+  <title>Güvenli Web Sitesi - Oturum Koruması (JWT)</title>
   <style>
     body { font-family: sans-serif; max-width: 800px; margin: 30px auto; padding: 20px; line-height: 1.6; }
     .container { display: flex; gap: 20px; flex-wrap: wrap; }
@@ -14,69 +14,84 @@
     input, button { width: 100%; padding: 10px; margin-top: 8px; font-size: 14px; box-sizing: border-box; }
     button { background: #0066cc; color: #fff; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
     button:hover { background: #0052a3; }
-    .log-box { margin-top: 15px; padding: 10px; background: #222; color: #00ff00; font-family: monospace; font-size: 13px; border-radius: 4px; min-height: 80px; overflow-y: auto; }
+    .btn-danger { background: #cc0000; }
+    .btn-danger:hover { background: #990000; }
+    .log-box { margin-top: 15px; padding: 10px; background: #222; color: #00ff00; font-family: monospace; font-size: 12px; border-radius: 4px; min-height: 80px; overflow-y: auto; word-break: break-all; }
     .error { color: #ff4d4d; }
+    .success { color: #00ff00; }
   </style>
 </head>
 <body>
-  <h2>Güvenlik Katmanları (Rate Limiting + SQLi Simülasyonu)</h2>
+  <h2>Oturum Güvenliği (JWT / Token Simülasyonu)</h2>
 
   <div class="container">
-    <!-- SOL: Rate Limiting Kalkanı -->
+    <!-- SOL: Giriş Yap ve Token Al -->
     <div class="card">
-      <h3>1. Bot Koruması (Rate Limiter)</h3>
-      <p><small>10 saniyede maksimum 3 istek hakkınız var.</small></p>
-      <button id="rateBtn">İstek / Mesaj Gönder</button>
-      <div id="rateLog" class="log-box">Hazır. Butona art arda basın...</div>
+      <h3>1. Giriş Yap & Token Oluştur</h3>
+      <form id="authForm">
+        <input type="text" id="authUser" placeholder="Kullanıcı Adı" autocomplete="off" required>
+        <input type="password" id="authPass" placeholder="Şifre" required>
+        <button type="submit">Giriş Yap & Bilet (Token) Al</button>
+      </form>
+      <button id="logoutBtn" class="btn-danger" style="margin-top: 10px; display: none;">Oturumu Kapat (Token'ı Sil)</button>
+      <div id="authLog" class="log-box">Oturum açılmadı.</div>
     </div>
 
-    <!-- SAĞ: SQL Injection Koruması -->
+    <!-- SAĞ: Korumalı Sayfa / İşlem Denemesi -->
     <div class="card">
-      <h3>2. Güvenli Giriş (SQLi Koruması)</h3>
-      <form id="loginForm">
-        <input type="text" id="username" placeholder="Kullanıcı Adı" required>
-        <input type="password" id="password" placeholder="Şifre" required>
-        <button type="submit">Giriş Yap</button>
-      </form>
-      <div id="loginLog" class="log-box">Giriş denemeleri bekleniyor...</div>
+      <h3>2. Korumalı Alana Erişim</h3>
+      <p><small>Sadece geçerli bir Token (Bilet) sahibi olanlar girebilir.</small></p>
+      <button id="accessSecretBtn">Gizli Verileri Getir</button>
+      <div id="secretLog" class="log-box">Erişim bekleniyor...</div>
     </div>
   </div>
 
   <script>
-    // --- 1. SOL TARAFI: RATE LIMITER MANTIĞI ---
-    let requestHistory = [];
-    const LIMIT = 3; // Maksimum istek sayısı
-    const WINDOW_TIME = 10000; // 10 saniye (milisaniye cinsinden)
+    let activeToken = null;
 
-    document.getElementById('rateBtn').addEventListener('click', function() {
-      const now = Date.now();
-      const log = document.getElementById('rateLog');
+    // Sahte JWT Token üretici
+    function generateFakeJWT(username) {
+      const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+      const payload = btoa(JSON.stringify({ user: username, role: "admin", exp: Date.now() + 60000 }));
+      const signature = btoa("secret_key_12345");
+      return `${header}.${payload}.${signature}`;
+    }
 
-      // 10 saniyeden eski istekleri listeden temizle
-      requestHistory = requestHistory.filter(timestamp => now - timestamp < WINDOW_TIME);
+    // Giriş işlemi
+    document.getElementById('authForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const user = document.getElementById('authUser').value;
+      const pass = document.getElementById('authPass').value;
+      const authLog = document.getElementById('authLog');
+      const logoutBtn = document.getElementById('logoutBtn');
 
-      if (requestHistory.length >= LIMIT) {
-        log.innerHTML = `<span class="error">[ENGEL] Sınıra ulaşıldı! Lütfen bekleyin. (Spam engellendi)</span>`;
-      } else {
-        requestHistory.push(now);
-        log.innerHTML = `[BAŞARILI] İstek gönderildi! (${requestHistory.length}/${LIMIT})`;
+      if (pass.length < 4) {
+        authLog.innerHTML = `<span class="error">[HATA] Şifre çok kısa!</span>`;
+        return;
       }
+
+      // Başarılı giriş sonucu Token üretilir ve saklanır
+      activeToken = generateFakeJWT(user);
+      authLog.innerHTML = `<span class="success">[BAŞARILI] Giriş yapıldı!<br><b>Token:</b><br>${activeToken}</span>`;
+      logoutBtn.style.display = "block";
     });
 
-    // --- 2. SAĞ TARAFI: SQL INJECTION SİMÜLASYONU VE SAVUNMA ---
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
-      const log = document.getElementById('loginLog');
+    // Oturumu Kapatma
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      activeToken = null;
+      document.getElementById('authLog').innerHTML = "Oturum kapatıldı. Token silindi.";
+      document.getElementById('secretLog').innerHTML = "Erişim bekleniyor...";
+      this.style.display = "none";
+    });
 
-      // Klasik zararlı SQLi ifadesi tespiti
-      const isSqlInjection = user.includes("'") || user.includes("OR") || user.includes("1=1") || pass.includes("'");
+    // Korumalı Alana İstek Atma
+    document.getElementById('accessSecretBtn').addEventListener('click', function() {
+      const secretLog = document.getElementById('secretLog');
 
-      if (isSqlInjection) {
-        log.innerHTML = `<span class="error">[ENGEL] Tehlikeli karakter tespit edildi! Parametrik Sorgu (Prepared Statement) zararlı karakterleri etkisiz kıldı. Giriş reddedildi.</span>`;
+      if (!activeToken) {
+        secretLog.innerHTML = `<span class="error">[REDDEDİLDİ 401] Yetkisiz Erişim! Geçerli bir Oturum Token'ınız yok. Lütfen önce giriş yapın.</span>`;
       } else {
-        log.innerHTML = `[BİLGİ] Sorgu güvenli bir şekilde veritabanına iletildi. (Kullanıcı: ${user})`;
+        secretLog.innerHTML = `<span class="success">[ERİŞİM SAĞLANDI 200]<br>Token doğrulandı! VIP veriler yüklendi:<br>- Gizli Rapor: %100 Güvenli Sistem</span>`;
       }
     });
   </script>
