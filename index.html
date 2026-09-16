@@ -3,43 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Güvenlik Başlıkları (XSS Koruması) -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  
-  <title>Güvenli Web Sitesi</title>
+  <title>Güvenli Web Sitesi - İleri Düzey Koruma</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; line-height: 1.6; }
-    input, button { padding: 10px; margin-top: 10px; font-size: 16px; }
-    #output { margin-top: 20px; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
+    body { font-family: sans-serif; max-width: 800px; margin: 30px auto; padding: 20px; line-height: 1.6; }
+    .container { display: flex; gap: 20px; flex-wrap: wrap; }
+    .card { flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; }
+    input, button { width: 100%; padding: 10px; margin-top: 8px; font-size: 14px; box-sizing: border-box; }
+    button { background: #0066cc; color: #fff; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+    button:hover { background: #0052a3; }
+    .log-box { margin-top: 15px; padding: 10px; background: #222; color: #00ff00; font-family: monospace; font-size: 13px; border-radius: 4px; min-height: 80px; overflow-y: auto; }
+    .error { color: #ff4d4d; }
   </style>
 </head>
 <body>
-  <h1>Güvenli Mesaj Alanı</h1>
-  <p>Aşağıya bir mesaj yazın. Sistem girdiyi güvenli hale getirerek ekrana basacaktır.</p>
+  <h2>Güvenlik Katmanları (Rate Limiting + SQLi Simülasyonu)</h2>
 
-  <form id="messageForm">
-    <input type="text" id="userInput" placeholder="Mesajınızı yazın..." required style="width: 70%;">
-    <button type="submit">Gönder</button>
-  </form>
+  <div class="container">
+    <!-- SOL: Rate Limiting Kalkanı -->
+    <div class="card">
+      <h3>1. Bot Koruması (Rate Limiter)</h3>
+      <p><small>10 saniyede maksimum 3 istek hakkınız var.</small></p>
+      <button id="rateBtn">İstek / Mesaj Gönder</button>
+      <div id="rateLog" class="log-box">Hazır. Butona art arda basın...</div>
+    </div>
 
-  <h3>Gelen Mesaj:</h3>
-  <div id="output">Henüz mesaj yok.</div>
+    <!-- SAĞ: SQL Injection Koruması -->
+    <div class="card">
+      <h3>2. Güvenli Giriş (SQLi Koruması)</h3>
+      <form id="loginForm">
+        <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+        <input type="password" id="password" placeholder="Şifre" required>
+        <button type="submit">Giriş Yap</button>
+      </form>
+      <div id="loginLog" class="log-box">Giriş denemeleri bekleniyor...</div>
+    </div>
+  </div>
 
   <script>
-    document.getElementById('messageForm').addEventListener('submit', function(e) {
+    // --- 1. SOL TARAFI: RATE LIMITER MANTIĞI ---
+    let requestHistory = [];
+    const LIMIT = 3; // Maksimum istek sayısı
+    const WINDOW_TIME = 10000; // 10 saniye (milisaniye cinsinden)
+
+    document.getElementById('rateBtn').addEventListener('click', function() {
+      const now = Date.now();
+      const log = document.getElementById('rateLog');
+
+      // 10 saniyeden eski istekleri listeden temizle
+      requestHistory = requestHistory.filter(timestamp => now - timestamp < WINDOW_TIME);
+
+      if (requestHistory.length >= LIMIT) {
+        log.innerHTML = `<span class="error">[ENGEL] Sınıra ulaşıldı! Lütfen bekleyin. (Spam engellendi)</span>`;
+      } else {
+        requestHistory.push(now);
+        log.innerHTML = `[BAŞARILI] İstek gönderildi! (${requestHistory.length}/${LIMIT})`;
+      }
+    });
+
+    // --- 2. SAĞ TARAFI: SQL INJECTION SİMÜLASYONU VE SAVUNMA ---
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      
-      const input = document.getElementById('userInput').value;
-      const outputDiv = document.getElementById('output');
-      
-      // GÜVENLİ YÖNTEM: innerHTML yerine textContent kullanımı.
-      // Bu sayede girilen kodlar çalıştırılmaz, sadece düz metin olarak basılır.
-      outputDiv.textContent = input;
-      
-      document.getElementById('userInput').value = '';
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      const log = document.getElementById('loginLog');
+
+      // Klasik zararlı SQLi ifadesi tespiti
+      const isSqlInjection = user.includes("'") || user.includes("OR") || user.includes("1=1") || pass.includes("'");
+
+      if (isSqlInjection) {
+        log.innerHTML = `<span class="error">[ENGEL] Tehlikeli karakter tespit edildi! Parametrik Sorgu (Prepared Statement) zararlı karakterleri etkisiz kıldı. Giriş reddedildi.</span>`;
+      } else {
+        log.innerHTML = `[BİLGİ] Sorgu güvenli bir şekilde veritabanına iletildi. (Kullanıcı: ${user})`;
+      }
     });
   </script>
 </body>
