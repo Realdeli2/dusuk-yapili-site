@@ -54,6 +54,87 @@
         <div id="mfaLog" class="log-box">Test bekleniyor...</div>
     </div>
 
-    <script src="./security-tests.js"></script>
+    <!-- JavaScript Kodları Doğrudan HTML İçinde -->
+    <script>
+        // 1. SQL Injection Testi
+        window.runSQLiTest = function() {
+            var input = document.getElementById("sqliInput") ? document.getElementById("sqliInput").value : "";
+            var log = document.getElementById("sqliLog");
+            if (!log) return;
+            
+            if (input.includes("'") || input.includes("OR") || input.includes("--")) {
+                log.style.borderLeftColor = "#dc3545";
+                log.innerHTML = "<strong>[ZAFİYET TESPİT EDİLDİ]</strong> SQL Injection başarılı! Veritabanı sorgusu bypass edildi: <br><code>SELECT * FROM users WHERE user = '" + input + "'</code>";
+            } else {
+                log.style.borderLeftColor = "#28a745";
+                log.innerText = "[GÜVENLİ] Girdi temizlendi, SQL Injection engellendi.";
+            }
+        };
+
+        // 2. XSS Testi
+        window.runXSSTest = function() {
+            var input = document.getElementById("xssInput") ? document.getElementById("xssInput").value : "";
+            var log = document.getElementById("xssLog");
+            if (!log) return;
+            
+            if (input.includes("<script>") || input.includes("onerror") || input.includes("onload")) {
+                log.style.borderLeftColor = "#dc3545";
+                log.innerText = "[ZAFİYET TESPİT EDİLDİ] Zararlı JavaScript kodu çalıştırıldı!";
+                try {
+                    alert("XSS Çalıştı! Girilen Kod: " + input);
+                } catch(e) {}
+            } else {
+                log.style.borderLeftColor = "#28a745";
+                log.innerText = "[GÜVENLİ] Zararlı etiketler temizlendi.";
+            }
+        };
+
+        // 3. Rate Limit Testi
+        var requestCount = 0;
+        window.runRateLimitTest = function() {
+            requestCount++;
+            var log = document.getElementById("rateLimitLog");
+            if (!log) return;
+            
+            if (requestCount > 5) {
+                log.style.borderLeftColor = "#dc3545";
+                log.innerText = "[429 TOO MANY REQUESTS] Çok fazla istek gönderildi! Erişim engellendi. (İstek Sayısı: " + requestCount + ")";
+            } else {
+                log.style.borderLeftColor = "#007bff";
+                log.innerText = "[200 OK] İstek başarılı (" + requestCount + "/5). Limiti aşmak için tıklamaya devam edin.";
+            }
+        };
+
+        // 6. MFA Testi
+        var generatedOTP = null;
+        window.sendOTPCode = function() {
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            var log = document.getElementById("mfaLog");
+            if (log) {
+                log.style.borderLeftColor = "#007bff";
+                log.innerText = "OTP Kodu Telefonunuza Gönderildi! Simülasyon Kodu: " + generatedOTP;
+            }
+        };
+
+        window.verifyOTPCode = function() {
+            var userInput = document.getElementById("otpInput") ? document.getElementById("otpInput").value : "";
+            var log = document.getElementById("mfaLog");
+            if (!log) return;
+            
+            if (!generatedOTP) {
+                log.innerText = "Lütfen önce OTP Kodu Gönder butonuna basın!";
+                return;
+            }
+            
+            if (userInput === generatedOTP) {
+                log.style.borderLeftColor = "#28a745";
+                log.innerText = "[BAŞARILI] 2FA Doğrulaması Geçildi! Giriş Yapıldı.";
+            } else {
+                log.style.borderLeftColor = "#dc3545";
+                log.innerText = "[HATALI] Yanlış OTP Kodu Girdiniz!";
+            }
+        };
+    </script>
+
 </body>
 </html>
