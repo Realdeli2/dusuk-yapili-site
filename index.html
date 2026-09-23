@@ -1,14 +1,53 @@
-<!-- TEST 6: 2FA / MFA -->
-<div class="card">
-  <h3>6. İki Faktörlü Doğrulama (2FA / MFA)</h3>
-  <p><small>Şifre sonrası SMS/Authenticator 6 haneli OTP doğrulaması.</small></p>
-  <button style="background:#28a745;" onclick="sendOTPCode()">1. Adım: OTP Kodu Gönder</button>
-  <div style="margin-top:10px; display:flex; gap:8px;">
-    <input type="text" id="otpInput" placeholder="6 Haneli Kod (ör: 123456)" maxlength="6" style="margin-top:0;">
-    <button style="width: auto; margin-top:0; white-space:nowrap;" onclick="verifyOTPCode()">Doğrula</button>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Güvenlik Testleri Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <h2>Siber Güvenlik Test Paneli</h2>
+
+    <div class="card">
+      <h3>1. SQL Injection (SQLi) Testi</h3>
+      <p><small>Veritabanı sorgularına zararlı kod enjekte etme simülasyonu.</small></p>
+      <input type="text" id="sqliInput" placeholder="Örn: ' OR '1'='1">
+      <button onclick="runSQLiTest()">SQLi Test Et</button>
+      <div id="sqliLog" class="log-box">Test bekleniyor...</div>
+    </div>
+
+    <div class="card">
+      <h3>2. Cross-Site Scripting (XSS) Testi</h3>
+      <p><small>İstemci tarafında zararlı JavaScript çalıştırma simülasyonu.</small></p>
+      <input type="text" id="xssInput" placeholder="Örn: <script>alert(1)</script>">
+      <button onclick="runXSSTest()">XSS Test Et</button>
+      <div id="xssLog" class="log-box">Test bekleniyor...</div>
+    </div>
+
+    <div class="card">
+      <h3>3. Rate Limiting Testi</h3>
+      <p><small>Aşırı istek göndererek servisi kısıtlama simülasyonu.</small></p>
+      <button onclick="runRateLimitTest()">İstek Gönder (Üst Üste Basın)</button>
+      <div id="rateLimitLog" class="log-box">Test bekleniyor...</div>
+    </div>
+
+    <div class="card">
+      <h3>6. İki Faktörlü Doğrulama (2FA / MFA)</h3>
+      <p><small>Şifre sonrası SMS/Authenticator 6 haneli OTP doğrulaması.</small></p>
+      <button style="background:#28a745; width:100%;" onclick="sendOTPCode()">1. Adım: OTP Kodu Gönder</button>
+      
+      <div style="margin-top:10px; display:flex; gap:8px;">
+        <input type="text" id="otpInput" placeholder="6 Haneli Kod (ör: 123456)" maxlength="6" style="flex:1; margin-top:0;">
+        <button style="width: auto; margin-top:0; white-space:nowrap;" onclick="verifyOTPCode()">Doğrula</button>
+      </div>
+      
+      <div id="mfaLog" class="log-box" style="margin-top:10px;">Test bekleniyor...</div>
+    </div>
   </div>
-  <div id="mfaLog" class="log-box">Test bekleniyor...</div>
-</div>
 
-
-<script src="security-tests.js"></script>
+  <script src="security-tests.js"></script>
+</body>
+</html>
